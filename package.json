@@ -1,0 +1,39 @@
+{
+  "name": "dev-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "程序员工具集合 - 包含BASE64、AES、RSA、SM2、URLEncode等功能",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "gh-pages -d dist"
+  },
+  "dependencies": {
+    "vue": "^3.3.2",
+    "vue-router": "^4.2.0",
+    "crypto-js": "^4.1.1",
+    "jsencrypt": "^3.3.2",
+    "sm-crypto": "^0.3.13",
+    "@vueuse/core": "^10.1.2",
+    "qrcode": "^1.5.3",
+    "qr-scanner": "^1.4.2",
+    "jsbarcode": "^3.11.5",
+    "quagga": "^0.12.1",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.2.3",
+    "vite": "^4.3.9",
+    "gh-pages": "^5.0.0",
+    "tailwindcss": "^3.3.0",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yisonli/dev-tools.git"
+  },
+  "homepage": "https://yisonli.github.io/dev-tools/"
+}
