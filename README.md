@@ -192,8 +192,6 @@ MIT License - 可自由使用、修改和分发
 如有问题或建议，欢迎创建 Issue 或通过以下方式联系：
 
 - GitHub: [yisonli](https://github.com/yisonli)
-- Email: your-email@example.com
-
 ---
 
 ⭐ 如果这个项目对你有帮助，请给个 Star 支持一下！
