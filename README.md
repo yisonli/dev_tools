@@ -35,7 +35,7 @@
 
 ## 🚀 在线体验
 
-访问: [https://your-username.github.io/dev-tools/](https://your-username.github.io/dev-tools/)
+访问: [https://yisonli.github.io/dev-tools/](https://yisonli.github.io/dev-tools/)
 
 ## 🛠️ 本地开发
 
@@ -69,7 +69,7 @@ npm run dev
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/your-username/dev-tools.git
+git clone https://github.com/yisonli/dev-tools.git
 cd dev-tools
 
 # 2. 安装依赖
@@ -191,7 +191,7 @@ MIT License - 可自由使用、修改和分发
 
 如有问题或建议，欢迎创建 Issue 或通过以下方式联系：
 
-- GitHub: [your-username](https://github.com/your-username)
+- GitHub: [yisonli](https://github.com/yisonli)
 - Email: your-email@example.com
 
 ---
