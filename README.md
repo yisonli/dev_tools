@@ -35,7 +35,7 @@
 
 ## 🚀 在线体验
 
-访问: [https://yisonli.github.io/dev-tools/](https://yisonli.github.io/dev-tools/)
+访问: [https://yisonli.github.io/dev_tools/](https://yisonli.github.io/dev_tools/)
 
 ## 🛠️ 本地开发
 
@@ -69,8 +69,8 @@ npm run dev
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/yisonli/dev-tools.git
-cd dev-tools
+git clone https://github.com/yisonli/dev_tools.git
+cd dev_tools
 
 # 2. 安装依赖
 npm install --no-optional --legacy-peer-deps
