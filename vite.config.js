@@ -10,15 +10,25 @@ function fileProtocolBuildHtml() {
       return html
         .replace('<script type="module" crossorigin ', '<script ')
         .replace('<script type="module" ', '<script ')
-        // 普通 script 在 head 里默认会阻塞并早于 body 执行，#app 还不存在；module 脚本等价于 defer
         .replace('<script src=', '<script defer src=')
     },
   }
 }
 
-export default defineConfig({
+/** GitHub Pages 项目页 base；勿在 Windows Git Bash 里写 `--base /仓库名/`（会被 MSYS 改写路径） */
+function resolveBase(mode, command) {
+  if (command !== 'build') return '/'
+  if (mode === 'github-pages') {
+    const repo = process.env.GITHUB_REPOSITORY_NAME?.trim()
+    if (repo && /^[a-zA-Z0-9_.-]+$/.test(repo)) return `/${repo}/`
+    return '/dev_tools/'
+  }
+  return './'
+}
+
+export default defineConfig(({ mode, command }) => ({
   plugins: [vue(), fileProtocolBuildHtml()],
-  base: process.env.NODE_ENV === 'production' ? './' : '/',
+  base: resolveBase(mode, command),
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
@@ -36,4 +46,4 @@ export default defineConfig({
     port: 3000,
     open: true,
   },
-})
+}))
