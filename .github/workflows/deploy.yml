@@ -1,3 +1,5 @@
+# 仓库 Settings → Pages → Source 请选择「GitHub Actions」，不要用「Deploy from a branch」，
+# 否则会发布仓库根目录，浏览器会去拉 /src/main.js（只有 dist 里才是打包后的资源）。
 name: 部署到 GitHub Pages
 
 on:
@@ -23,8 +25,11 @@ jobs:
     - name: 安装依赖
       run: npm ci
 
+    # 项目页地址为 https://<user>.github.io/<仓库名>/ ，base 由 vite --mode github-pages + 仓库名决定
     - name: 构建项目
-      run: npm run build
+      env:
+        GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
+      run: npm run build:pages
 
     - name: 部署到 GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
@@ -32,4 +37,4 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./dist
-        cname:  tools.yyeer.com # 如果你有自定义域名，在这里填写
+        cname: # 如果你有自定义域名，在这里填写
