@@ -18,7 +18,7 @@ function fileProtocolBuildHtml() {
 
 export default defineConfig({
   plugins: [vue(), fileProtocolBuildHtml()],
-  base: process.env.NODE_ENV === 'production' ? '/dev_tools/' : '/',
+  base: process.env.NODE_ENV === 'production' ? './' : '/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
