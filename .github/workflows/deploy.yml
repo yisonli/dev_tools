@@ -1,40 +1,50 @@
-# 仓库 Settings → Pages → Source 请选择「GitHub Actions」，不要用「Deploy from a branch」，
-# 否则会发布仓库根目录，浏览器会去拉 /src/main.js（只有 dist 里才是打包后的资源）。
+# 部署说明：
+# 1. 仓库 Settings → Pages → Build and deployment → Source 选「GitHub Actions」（不要选 Deploy from a branch 指向 main/(root)，否则会发布源码里的 index.html，请求 /src/main.js）。
+# 2. 首次启用后等一次 workflow 跑完再访问。
 name: 部署到 GitHub Pages
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: 设置 Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: npm
 
-    - name: 安装依赖
-      run: npm ci
+      - name: 安装依赖
+        run: npm ci
 
-    # 项目页地址为 https://<user>.github.io/<仓库名>/ ，base 由 vite --mode github-pages + 仓库名决定
-    - name: 构建项目
-      env:
-        GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
-      run: npm run build:pages
+      - name: 构建项目
+        env:
+          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
+        run: npm run build:pages
 
-    - name: 部署到 GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main'
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./dist
-        cname: # 如果你有自定义域名，在这里填写
+      - name: 上传 Pages 产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
