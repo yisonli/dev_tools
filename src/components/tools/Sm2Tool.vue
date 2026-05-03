@@ -73,6 +73,7 @@
               加密模式
             </label>
             <select v-model="encryptMode" class="input-field">
+              <option value="asn1">ASN.1编码（国密标准）</option>
               <option value="1">C1C3C2模式</option>
               <option value="0">C1C2C3模式</option>
             </select>
@@ -141,6 +142,7 @@
               解密模式
             </label>
             <select v-model="decryptMode" class="input-field">
+              <option value="asn1">ASN.1编码（国密标准）</option>
               <option value="1">C1C3C2模式</option>
               <option value="0">C1C2C3模式</option>
             </select>
@@ -325,7 +327,8 @@
         <h4 class="font-semibold text-blue-800 mb-2">使用说明：</h4>
         <ul class="text-sm text-blue-700 space-y-1">
           <li>• SM2是中国国密标准，基于椭圆曲线的非对称加密算法</li>
-          <li>• 支持C1C2C3和C1C3C2两种加密模式，C1C3C2为推荐模式</li>
+          <li>• 加密模式支持：ASN.1编码（国密标准，兼容Go/Java等）、C1C3C2、C1C2C3</li>
+          <li>• ASN.1模式为默认推荐，与Go crypto/sm2等标准实现兼容</li>
           <li>• 公钥长度为128个十六进制字符，私钥长度为64个十六进制字符</li>
           <li>• 数字签名支持用户标识，默认为"1234567812345678"</li>
           <li>• 所有操作在本地完成，密钥和数据不会发送到服务器</li>
@@ -337,6 +340,7 @@
 
 <script>
 import { sm2 } from 'sm-crypto'
+import { sm2EncodeAsn1, sm2DecodeAsn1 } from '../../utils/sm2-asn1'
 
 export default {
   name: 'Sm2Tool',
@@ -348,12 +352,12 @@ export default {
       
       plainText: '',
       encryptedText: '',
-      encryptMode: '1', // 默认C1C3C2模式
+      encryptMode: 'asn1', // 默认ASN.1国密标准模式
       encryptError: '',
       
       cipherText: '',
       decryptedText: '',
-      decryptMode: '1', // 默认C1C3C2模式
+      decryptMode: 'asn1', // 默认ASN.1国密标准模式
       decryptError: '',
       
       signText: '',
@@ -397,8 +401,25 @@ export default {
           return
         }
 
-        const encrypted = sm2.doEncrypt(this.plainText, this.publicKey, parseInt(this.encryptMode))
-        this.encryptedText = encrypted
+        if (this.encryptMode === 'asn1') {
+          // ASN.1 编码模式：先用C1C3C2加密，再包装为ASN.1 DER
+          const encrypted = sm2.doEncrypt(this.plainText, this.publicKey, 1)
+          if (!encrypted) {
+            this.encryptError = '加密失败'
+            this.encryptedText = ''
+            return
+          }
+          // 解析原始密文：C1(128) + C3(64) + C2(变长)
+          const c1x = encrypted.substr(0, 64)
+          const c1y = encrypted.substr(64, 64)
+          const c3 = encrypted.substr(128, 64)
+          const c2 = encrypted.substr(128 + 64)
+          this.encryptedText = sm2EncodeAsn1(c1x, c1y, c3, c2)
+        } else {
+          // 原始拼接模式
+          const encrypted = sm2.doEncrypt(this.plainText, this.publicKey, parseInt(this.encryptMode))
+          this.encryptedText = encrypted
+        }
         
       } catch (error) {
         console.error('加密错误:', error)
@@ -416,8 +437,18 @@ export default {
           return
         }
 
-        const decrypted = sm2.doDecrypt(this.cipherText, this.privateKey, parseInt(this.decryptMode))
-        this.decryptedText = decrypted
+        if (this.decryptMode === 'asn1') {
+          // ASN.1 解码模式：先解析ASN.1 DER，再用C1C3C2解密
+          const { c1x, c1y, c3, c2 } = sm2DecodeAsn1(this.cipherText.trim())
+          // 重组为 C1C3C2 格式的原始密文
+          const rawCipher = c1x + c1y + c3 + c2
+          const decrypted = sm2.doDecrypt(rawCipher, this.privateKey, 1)
+          this.decryptedText = decrypted
+        } else {
+          // 原始拼接模式
+          const decrypted = sm2.doDecrypt(this.cipherText, this.privateKey, parseInt(this.decryptMode))
+          this.decryptedText = decrypted
+        }
         
       } catch (error) {
         console.error('解密错误:', error)
