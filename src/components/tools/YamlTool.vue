@@ -114,6 +114,13 @@
               >
                 下载YAML
               </button>
+              <button
+                @click="showFullscreen = true"
+                class="btn btn-secondary text-sm"
+                :disabled="!yamlOutput"
+              >
+                全屏
+              </button>
             </div>
           </div>
           
@@ -225,19 +232,31 @@
           <li>• 支持多文档YAML（---分隔）</li>
         </ul>
       </div>
+
+      <!-- 全屏查看 -->
+      <FullscreenViewer
+        :visible="showFullscreen"
+        title="YAML 格式化结果"
+        :content="yamlOutput"
+        :highlighted="highlightedYamlOutput"
+        @close="showFullscreen = false"
+      />
     </div>
   </div>
 </template>
 
 <script>
 import YAML from 'js-yaml'
+import FullscreenViewer from '../FullscreenViewer.vue'
 
 export default {
   name: 'YamlTool',
+  components: { FullscreenViewer },
   data() {
     return {
       yamlInput: '',
       yamlOutput: '',
+      showFullscreen: false,
       isValid: false,
       hasError: false,
       error: '',

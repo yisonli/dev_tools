@@ -115,6 +115,13 @@
               >
                 下载JSON
               </button>
+              <button
+                @click="showFullscreen = true"
+                class="btn btn-secondary text-sm"
+                :disabled="!jsonOutput"
+              >
+                全屏
+              </button>
             </div>
           </div>
           
@@ -243,17 +250,30 @@
           <li>• 显示JSON结构统计信息</li>
         </ul>
       </div>
+
+      <!-- 全屏查看 -->
+      <FullscreenViewer
+        :visible="showFullscreen"
+        title="JSON 格式化结果"
+        :content="jsonOutput"
+        :highlighted="highlightedJsonOutput"
+        @close="showFullscreen = false"
+      />
     </div>
   </div>
 </template>
 
 <script>
+import FullscreenViewer from '../FullscreenViewer.vue'
+
 export default {
   name: 'JsonTool',
+  components: { FullscreenViewer },
   data() {
     return {
       jsonInput: '',
       jsonOutput: '',
+      showFullscreen: false,
       isValid: false,
       hasError: false,
       error: '',

@@ -32,7 +32,7 @@
             <textarea
               v-model="encodedText"
               readonly
-              class="textarea-field h-32 bg-gray-50"
+              class="textarea-field h-48 bg-gray-50"
               placeholder="编码结果将显示在这里..."
             ></textarea>
           </div>
@@ -47,6 +47,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
               </svg>
               复制编码结果
+            </button>
+            <button
+              @click="showFullscreenEncode = true"
+              class="btn btn-secondary"
+              :disabled="!encodedText"
+            >
+              全屏
             </button>
             <button
               @click="clearEncode"
@@ -80,7 +87,7 @@
             <textarea
               v-model="decodedText"
               readonly
-              class="textarea-field h-32 bg-gray-50"
+              class="textarea-field h-48 bg-gray-50"
               placeholder="解码结果将显示在这里..."
             ></textarea>
           </div>
@@ -99,6 +106,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
               </svg>
               复制解码结果
+            </button>
+            <button
+              @click="showFullscreenDecode = true"
+              class="btn btn-secondary"
+              :disabled="!decodedText"
+            >
+              全屏
             </button>
             <button
               @click="clearDecode"
@@ -120,20 +134,39 @@
           <li>• 所有操作在本地完成，数据不会发送到服务器</li>
         </ul>
       </div>
+
+      <!-- 全屏查看 -->
+      <FullscreenViewer
+        :visible="showFullscreenEncode"
+        title="BASE64 编码结果"
+        :content="encodedText"
+        @close="showFullscreenEncode = false"
+      />
+      <FullscreenViewer
+        :visible="showFullscreenDecode"
+        title="BASE64 解码结果"
+        :content="decodedText"
+        @close="showFullscreenDecode = false"
+      />
     </div>
   </div>
 </template>
 
 <script>
+import FullscreenViewer from '../FullscreenViewer.vue'
+
 export default {
   name: 'Base64Tool',
+  components: { FullscreenViewer },
   data() {
     return {
       rawText: '',
       encodedText: '',
       encodedForDecode: '',
       decodedText: '',
-      decodeError: ''
+      decodeError: '',
+      showFullscreenEncode: false,
+      showFullscreenDecode: false,
     }
   },
   methods: {
