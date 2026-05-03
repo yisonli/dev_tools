@@ -15,7 +15,7 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
               公钥 (Public Key)
-              <span class="text-xs text-gray-500">128字符十六进制</span>
+              <span class="text-xs text-gray-500">128字符十六进制（不含04前缀）</span>
             </label>
             <textarea
               v-model="publicKey"
@@ -43,12 +43,56 @@
           >
             {{ isGenerating ? '生成中...' : '生成密钥对' }}
           </button>
-          <button
-            @click="clearKeys"
-            class="btn btn-secondary"
-          >
-            清空密钥
-          </button>
+          <button @click="clearKeys" class="btn btn-secondary">清空密钥</button>
+        </div>
+      </div>
+
+      <!-- 加密参数配置 -->
+      <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+        <h3 class="text-lg font-semibold text-blue-800 mb-4">🔧 加密参数配置</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- 密文编码方式 -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              密文编码方式
+            </label>
+            <select v-model="cipherEncoding" class="input-field">
+              <option value="plain">普通编码 (Plain)</option>
+              <option value="asn1">ASN.1编码 (国密标准)</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">
+              ASN.1兼容Go/Java等标准实现
+            </p>
+          </div>
+
+          <!-- 椭圆曲线点序列化模式 -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              点序列化模式
+            </label>
+            <select v-model="pointMarshalMode" class="input-field">
+              <option value="uncompressed">非压缩模式</option>
+              <option value="compressed">压缩模式</option>
+              <option value="hybrid">混合模式</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">
+              ASN.1编码时此项不生效
+            </p>
+          </div>
+
+          <!-- 密文拼接顺序 -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              密文拼接顺序
+            </label>
+            <select v-model="cipherSplicing" class="input-field">
+              <option value="C1C3C2">C1C3C2 (新标准)</option>
+              <option value="C1C2C3">C1C2C3 (旧标准)</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">
+              ASN.1编码时此项不生效
+            </p>
+          </div>
         </div>
       </div>
 
@@ -58,9 +102,7 @@
           <h3 class="text-lg font-semibold text-gray-700">公钥加密</h3>
           
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              明文
-            </label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">明文</label>
             <textarea
               v-model="plainText"
               placeholder="请输入要加密的文本..."
@@ -69,20 +111,7 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              加密模式
-            </label>
-            <select v-model="encryptMode" class="input-field">
-              <option value="asn1">ASN.1编码（国密标准）</option>
-              <option value="1">C1C3C2模式</option>
-              <option value="0">C1C2C3模式</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              加密结果 (十六进制)
-            </label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">加密结果</label>
             <textarea
               v-model="encryptedText"
               readonly
@@ -91,34 +120,19 @@
             ></textarea>
           </div>
 
-          <div v-if="encryptError" class="text-red-600 text-sm">
-            {{ encryptError }}
-          </div>
+          <div v-if="encryptError" class="text-red-600 text-sm">{{ encryptError }}</div>
 
           <div class="flex space-x-2">
-            <button
-              @click="encryptText"
-              class="btn btn-primary"
-              :disabled="!plainText || !publicKey"
-            >
+            <button @click="encryptText" class="btn btn-primary" :disabled="!plainText || !publicKey">
               加密
             </button>
-            <button
-              @click="copyEncrypted"
-              class="btn btn-secondary flex items-center"
-              :disabled="!encryptedText"
-            >
+            <button @click="copyEncrypted" class="btn btn-secondary flex items-center" :disabled="!encryptedText">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
               </svg>
               复制
             </button>
-            <button
-              @click="clearEncrypt"
-              class="btn btn-secondary"
-            >
-              清空
-            </button>
+            <button @click="clearEncrypt" class="btn btn-secondary">清空</button>
           </div>
         </div>
 
@@ -127,9 +141,7 @@
           <h3 class="text-lg font-semibold text-gray-700">私钥解密</h3>
           
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              密文 (十六进制)
-            </label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">密文</label>
             <textarea
               v-model="cipherText"
               placeholder="请输入要解密的密文..."
@@ -138,20 +150,7 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              解密模式
-            </label>
-            <select v-model="decryptMode" class="input-field">
-              <option value="asn1">ASN.1编码（国密标准）</option>
-              <option value="1">C1C3C2模式</option>
-              <option value="0">C1C2C3模式</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              解密结果
-            </label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">解密结果</label>
             <textarea
               v-model="decryptedText"
               readonly
@@ -160,34 +159,19 @@
             ></textarea>
           </div>
 
-          <div v-if="decryptError" class="text-red-600 text-sm">
-            {{ decryptError }}
-          </div>
+          <div v-if="decryptError" class="text-red-600 text-sm">{{ decryptError }}</div>
 
           <div class="flex space-x-2">
-            <button
-              @click="decryptText"
-              class="btn btn-primary"
-              :disabled="!cipherText || !privateKey"
-            >
+            <button @click="decryptText" class="btn btn-primary" :disabled="!cipherText || !privateKey">
               解密
             </button>
-            <button
-              @click="copyDecrypted"
-              class="btn btn-secondary flex items-center"
-              :disabled="!decryptedText"
-            >
+            <button @click="copyDecrypted" class="btn btn-secondary flex items-center" :disabled="!decryptedText">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
               </svg>
               复制
             </button>
-            <button
-              @click="clearDecrypt"
-              class="btn btn-secondary"
-            >
-              清空
-            </button>
+            <button @click="clearDecrypt" class="btn btn-secondary">清空</button>
           </div>
         </div>
       </div>
@@ -201,59 +185,25 @@
             <h4 class="font-medium text-gray-700">签名生成</h4>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                待签名文本
-              </label>
-              <textarea
-                v-model="signText"
-                placeholder="请输入要签名的文本..."
-                class="textarea-field h-24"
-              ></textarea>
+              <label class="block text-sm font-medium text-gray-700 mb-2">待签名文本</label>
+              <textarea v-model="signText" placeholder="请输入要签名的文本..." class="textarea-field h-24"></textarea>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                用户标识 (可选)
-              </label>
-              <input
-                v-model="userId"
-                type="text"
-                placeholder="默认为: 1234567812345678"
-                class="input-field"
-              />
+              <label class="block text-sm font-medium text-gray-700 mb-2">用户标识 (可选)</label>
+              <input v-model="userId" type="text" placeholder="默认为: 1234567812345678" class="input-field" />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                签名结果 (十六进制)
-              </label>
-              <textarea
-                v-model="signature"
-                readonly
-                class="textarea-field h-24 bg-gray-50 font-mono text-sm"
-                placeholder="签名结果将显示在这里..."
-              ></textarea>
+              <label class="block text-sm font-medium text-gray-700 mb-2">签名结果 (十六进制)</label>
+              <textarea v-model="signature" readonly class="textarea-field h-24 bg-gray-50 font-mono text-sm" placeholder="签名结果将显示在这里..."></textarea>
             </div>
 
-            <div v-if="signError" class="text-red-600 text-sm">
-              {{ signError }}
-            </div>
+            <div v-if="signError" class="text-red-600 text-sm">{{ signError }}</div>
 
             <div class="flex space-x-2">
-              <button
-                @click="signMessage"
-                class="btn btn-primary"
-                :disabled="!signText || !privateKey"
-              >
-                生成签名
-              </button>
-              <button
-                @click="copySignature"
-                class="btn btn-secondary"
-                :disabled="!signature"
-              >
-                复制签名
-              </button>
+              <button @click="signMessage" class="btn btn-primary" :disabled="!signText || !privateKey">生成签名</button>
+              <button @click="copySignature" class="btn btn-secondary" :disabled="!signature">复制签名</button>
             </div>
           </div>
 
@@ -262,61 +212,29 @@
             <h4 class="font-medium text-gray-700">签名验证</h4>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                原始文本
-              </label>
-              <textarea
-                v-model="verifyText"
-                placeholder="请输入原始文本..."
-                class="textarea-field h-24"
-              ></textarea>
+              <label class="block text-sm font-medium text-gray-700 mb-2">原始文本</label>
+              <textarea v-model="verifyText" placeholder="请输入原始文本..." class="textarea-field h-24"></textarea>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                用户标识 (可选)
-              </label>
-              <input
-                v-model="verifyUserId"
-                type="text"
-                placeholder="默认为: 1234567812345678"
-                class="input-field"
-              />
+              <label class="block text-sm font-medium text-gray-700 mb-2">用户标识 (可选)</label>
+              <input v-model="verifyUserId" type="text" placeholder="默认为: 1234567812345678" class="input-field" />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                签名 (十六进制)
-              </label>
-              <textarea
-                v-model="verifySignature"
-                placeholder="请输入要验证的签名..."
-                class="textarea-field h-24 font-mono text-sm"
-              ></textarea>
+              <label class="block text-sm font-medium text-gray-700 mb-2">签名 (十六进制)</label>
+              <textarea v-model="verifySignature" placeholder="请输入要验证的签名..." class="textarea-field h-24 font-mono text-sm"></textarea>
             </div>
 
             <div v-if="verifyResult !== null" class="p-3 rounded-lg" :class="verifyResult ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
               {{ verifyResult ? '✓ 签名验证成功' : '✗ 签名验证失败' }}
             </div>
 
-            <div v-if="verifyError" class="text-red-600 text-sm">
-              {{ verifyError }}
-            </div>
+            <div v-if="verifyError" class="text-red-600 text-sm">{{ verifyError }}</div>
 
             <div class="flex space-x-2">
-              <button
-                @click="verifySignature"
-                class="btn btn-primary"
-                :disabled="!verifyText || !verifySignature || !publicKey"
-              >
-                验证签名
-              </button>
-              <button
-                @click="clearVerify"
-                class="btn btn-secondary"
-              >
-                清空
-              </button>
+              <button @click="doVerifySignature" class="btn btn-primary" :disabled="!verifyText || !verifySignature || !publicKey">验证签名</button>
+              <button @click="clearVerify" class="btn btn-secondary">清空</button>
             </div>
           </div>
         </div>
@@ -327,9 +245,10 @@
         <h4 class="font-semibold text-blue-800 mb-2">使用说明：</h4>
         <ul class="text-sm text-blue-700 space-y-1">
           <li>• SM2是中国国密标准，基于椭圆曲线的非对称加密算法</li>
-          <li>• 加密模式支持：ASN.1编码（国密标准，兼容Go/Java等）、C1C3C2、C1C2C3</li>
-          <li>• ASN.1模式为默认推荐，与Go crypto/sm2等标准实现兼容</li>
-          <li>• 公钥长度为128个十六进制字符，私钥长度为64个十六进制字符</li>
+          <li>• <strong>密文编码方式</strong>：ASN.1为国密标准格式，兼容Go crypto/sm2、Java BC等；普通编码为原始hex拼接</li>
+          <li>• <strong>点序列化模式</strong>：控制C1点的表示方式，ASN.1编码时自动忽略（C1.x和C1.y分开存储）</li>
+          <li>• <strong>密文拼接顺序</strong>：C1C3C2为新标准（推荐），C1C2C3为旧标准</li>
+          <li>• 公钥长度为128个十六进制字符（不含04前缀），私钥长度为64个十六进制字符</li>
           <li>• 数字签名支持用户标识，默认为"1234567812345678"</li>
           <li>• 所有操作在本地完成，密钥和数据不会发送到服务器</li>
         </ul>
@@ -340,31 +259,39 @@
 
 <script>
 import { sm2 } from 'sm-crypto'
-import { sm2EncodeAsn1, sm2DecodeAsn1 } from '../../utils/sm2-asn1'
+import { sm2EncryptFull, sm2DecryptFull } from '../../utils/sm2-asn1'
 
 export default {
   name: 'Sm2Tool',
   data() {
     return {
+      // 密钥
       publicKey: '',
       privateKey: '',
       isGenerating: false,
-      
+
+      // 加密参数（共享配置）
+      cipherEncoding: 'asn1',
+      pointMarshalMode: 'uncompressed',
+      cipherSplicing: 'C1C3C2',
+
+      // 加密
       plainText: '',
       encryptedText: '',
-      encryptMode: 'asn1', // 默认ASN.1国密标准模式
       encryptError: '',
-      
+
+      // 解密
       cipherText: '',
       decryptedText: '',
-      decryptMode: 'asn1', // 默认ASN.1国密标准模式
       decryptError: '',
-      
+
+      // 签名
       signText: '',
       userId: '',
       signature: '',
       signError: '',
-      
+
+      // 验签
       verifyText: '',
       verifyUserId: '',
       verifySignature: '',
@@ -376,13 +303,10 @@ export default {
     async generateKeyPair() {
       this.isGenerating = true
       try {
-        // 使用 setTimeout 让UI有时间更新
         await new Promise(resolve => setTimeout(resolve, 100))
-        
         const keypair = sm2.generateKeyPairHex()
         this.publicKey = keypair.publicKey
         this.privateKey = keypair.privateKey
-        
         this.showNotification('SM2密钥对生成成功')
       } catch (error) {
         console.error('密钥生成错误:', error)
@@ -391,133 +315,95 @@ export default {
         this.isGenerating = false
       }
     },
-    
+
     encryptText() {
       try {
         this.encryptError = ''
-        
         if (!this.plainText || !this.publicKey) {
           this.encryptError = '请输入明文和公钥'
           return
         }
-
-        if (this.encryptMode === 'asn1') {
-          // ASN.1 编码模式：先用C1C3C2加密，再包装为ASN.1 DER
-          const encrypted = sm2.doEncrypt(this.plainText, this.publicKey, 1)
-          if (!encrypted) {
-            this.encryptError = '加密失败'
-            this.encryptedText = ''
-            return
-          }
-          // 解析原始密文：C1(128) + C3(64) + C2(变长)
-          const c1x = encrypted.substr(0, 64)
-          const c1y = encrypted.substr(64, 64)
-          const c3 = encrypted.substr(128, 64)
-          const c2 = encrypted.substr(128 + 64)
-          this.encryptedText = sm2EncodeAsn1(c1x, c1y, c3, c2)
-        } else {
-          // 原始拼接模式
-          const encrypted = sm2.doEncrypt(this.plainText, this.publicKey, parseInt(this.encryptMode))
-          this.encryptedText = encrypted
-        }
-        
+        this.encryptedText = sm2EncryptFull(this.plainText, this.publicKey, {
+          cipherEncoding: this.cipherEncoding,
+          pointMarshalMode: this.pointMarshalMode,
+          cipherSplicing: this.cipherSplicing
+        })
       } catch (error) {
         console.error('加密错误:', error)
         this.encryptError = '加密失败：' + error.message
         this.encryptedText = ''
       }
     },
-    
+
     decryptText() {
       try {
         this.decryptError = ''
-        
         if (!this.cipherText || !this.privateKey) {
           this.decryptError = '请输入密文和私钥'
           return
         }
-
-        if (this.decryptMode === 'asn1') {
-          // ASN.1 解码模式：先解析ASN.1 DER，再用C1C3C2解密
-          const { c1x, c1y, c3, c2 } = sm2DecodeAsn1(this.cipherText.trim())
-          // 重组为 C1C3C2 格式的原始密文
-          const rawCipher = c1x + c1y + c3 + c2
-          const decrypted = sm2.doDecrypt(rawCipher, this.privateKey, 1)
-          this.decryptedText = decrypted
-        } else {
-          // 原始拼接模式
-          const decrypted = sm2.doDecrypt(this.cipherText, this.privateKey, parseInt(this.decryptMode))
-          this.decryptedText = decrypted
-        }
-        
+        this.decryptedText = sm2DecryptFull(this.cipherText, this.privateKey, {
+          cipherEncoding: this.cipherEncoding,
+          pointMarshalMode: this.pointMarshalMode,
+          cipherSplicing: this.cipherSplicing
+        })
       } catch (error) {
         console.error('解密错误:', error)
         this.decryptError = '解密失败：' + error.message
         this.decryptedText = ''
       }
     },
-    
+
     signMessage() {
       try {
         this.signError = ''
-        
         if (!this.signText || !this.privateKey) {
           this.signError = '请输入要签名的文本和私钥'
           return
         }
-
         const userIdToUse = this.userId || '1234567812345678'
-        const signature = sm2.doSignature(this.signText, this.privateKey, {
-          userId: userIdToUse
-        })
-        this.signature = signature
-        
+        this.signature = sm2.doSignature(this.signText, this.privateKey, { userId: userIdToUse })
       } catch (error) {
         console.error('签名错误:', error)
         this.signError = '签名失败：' + error.message
         this.signature = ''
       }
     },
-    
-    verifySignature() {
+
+    doVerifySignature() {
       try {
         this.verifyError = ''
         this.verifyResult = null
-        
         if (!this.verifyText || !this.verifySignature || !this.publicKey) {
           this.verifyError = '请输入原始文本、签名和公钥'
           return
         }
-
         const userIdToUse = this.verifyUserId || '1234567812345678'
-        this.verifyResult = sm2.doVerifySignature(this.verifyText, this.verifySignature, this.publicKey, {
-          userId: userIdToUse
-        })
-        
+        this.verifyResult = sm2.doVerifySignature(this.verifyText, this.verifySignature, this.publicKey, { userId: userIdToUse })
       } catch (error) {
         console.error('验证错误:', error)
         this.verifyError = '验证失败：' + error.message
         this.verifyResult = false
       }
     },
-    
+
     clearKeys() {
       this.publicKey = ''
       this.privateKey = ''
     },
-    
+
     clearEncrypt() {
       this.plainText = ''
       this.encryptedText = ''
       this.encryptError = ''
     },
-    
+
     clearDecrypt() {
       this.cipherText = ''
       this.decryptedText = ''
       this.decryptError = ''
     },
-    
+
     clearVerify() {
       this.verifyText = ''
       this.verifyUserId = ''
@@ -525,44 +411,35 @@ export default {
       this.verifyResult = null
       this.verifyError = ''
     },
-    
+
     async copyEncrypted() {
       try {
         await navigator.clipboard.writeText(this.encryptedText)
-        this.showNotification('加密结果已复制到剪贴板')
-      } catch (error) {
-        console.error('复制失败:', error)
-      }
+        this.showNotification('加密结果已复制')
+      } catch (e) { console.error(e) }
     },
-    
+
     async copyDecrypted() {
       try {
         await navigator.clipboard.writeText(this.decryptedText)
-        this.showNotification('解密结果已复制到剪贴板')
-      } catch (error) {
-        console.error('复制失败:', error)
-      }
+        this.showNotification('解密结果已复制')
+      } catch (e) { console.error(e) }
     },
-    
+
     async copySignature() {
       try {
         await navigator.clipboard.writeText(this.signature)
-        this.showNotification('签名已复制到剪贴板')
-      } catch (error) {
-        console.error('复制失败:', error)
-      }
+        this.showNotification('签名已复制')
+      } catch (e) { console.error(e) }
     },
-    
+
     showNotification(message, type = 'success') {
       const notification = document.createElement('div')
       notification.textContent = message
-      const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500'
-      notification.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50`
+      notification.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 ' +
+        (type === 'error' ? 'bg-red-500 text-white' : 'bg-green-500 text-white')
       document.body.appendChild(notification)
-      
-      setTimeout(() => {
-        document.body.removeChild(notification)
-      }, 2000)
+      setTimeout(() => { document.body.removeChild(notification) }, 2000)
     }
   }
 }
