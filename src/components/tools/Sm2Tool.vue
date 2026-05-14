@@ -62,7 +62,7 @@
               <option value="asn1">ASN.1编码 (国密标准)</option>
             </select>
             <p class="text-xs text-gray-500 mt-1">
-              ASN.1兼容Go/Java等标准实现
+              自动识别Go/Java/前端密文格式
             </p>
           </div>
 
@@ -77,7 +77,7 @@
               <option value="hybrid">混合模式</option>
             </select>
             <p class="text-xs text-gray-500 mt-1">
-              ASN.1编码时此项不生效
+              自动检测/ASN.1编码时此项不生效
             </p>
           </div>
 
@@ -91,7 +91,7 @@
               <option value="C1C2C3">C1C2C3 (旧标准)</option>
             </select>
             <p class="text-xs text-gray-500 mt-1">
-              ASN.1编码时此项不生效
+              自动检测/ASN.1编码时此项不生效
             </p>
           </div>
         </div>
@@ -246,11 +246,12 @@
         <h4 class="font-semibold text-blue-800 mb-2">使用说明：</h4>
         <ul class="text-sm text-blue-700 space-y-1">
           <li>• SM2是中国国密标准，基于椭圆曲线的非对称加密算法</li>
-          <li>• <strong>密文编码方式</strong>：ASN.1为国密标准格式，兼容Go crypto/sm2、Java BC等；普通编码为原始hex拼接</li>
-          <li>• <strong>点序列化模式</strong>：控制C1点的表示方式，ASN.1编码时自动忽略（C1.x和C1.y分开存储）</li>
+          <li>• <strong>密文编码方式</strong>：自动检测模式可智能识别不同来源的密文格式（推荐）；ASN.1为国密标准格式；普通编码为原始hex拼接（兼容Go tjfoc/gmsm等）</li>
+          <li>• <strong>点序列化模式</strong>：控制C1点的表示方式，自动检测/ASN.1编码时自动忽略（C1.x和C1.y分开存储）</li>
           <li>• <strong>密文拼接顺序</strong>：C1C3C2为新标准（推荐），C1C2C3为旧标准</li>
           <li>• 公钥长度为128个十六进制字符（不含04前缀），私钥长度为64个十六进制字符</li>
           <li>• 数字签名支持用户标识，默认为"1234567812345678"</li>
+          <li>• 签名验证自动识别 raw R||S（128字符）和 ASN.1 DER 两种格式</li>
           <li>• 所有操作在本地完成，密钥和数据不会发送到服务器</li>
         </ul>
       </div>
