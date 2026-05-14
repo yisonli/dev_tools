@@ -124,7 +124,8 @@ export function sm2DecodeAsn1(asn1Hex) {
  * @returns {string} 压缩后的C1 hex
  */
 export function compressC1Point(c1x, c1y, mode) {
-  const y = window.BigInt ? BigInt('0x' + c1y) : null
+  const _BigInt = (typeof globalThis !== 'undefined' && globalThis.BigInt) || (typeof window !== 'undefined' && window.BigInt)
+  const y = _BigInt ? _BigInt('0x' + c1y) : null
   let yIsEven
   if (y !== null) {
     yIsEven = y % 2n === 0n
@@ -249,6 +250,117 @@ function modPow(base, exp, m) {
   return result
 }
 
+// ========== 格式自动检测 ==========
+
+/**
+ * 检测密文格式
+ * @param {string} cipherHex - 密文 hex
+ * @returns {'asn1' | 'plain'}
+ */
+export function detectCipherFormat(cipherHex) {
+  if (!cipherHex || cipherHex.length < 2) return 'plain'
+  // ASN.1 DER 的 SEQUENCE 标签固定为 0x30
+  const firstByte = cipherHex.substring(0, 2).toLowerCase()
+  if (firstByte !== '30') return 'plain'
+
+  // 进一步验证：尝试 ASN.1 解析
+  try {
+    const parsed = sm2DecodeAsn1(cipherHex)
+    // 验证解析出的字段长度是否合理
+    if (parsed.c1x.length >= 60 && parsed.c1x.length <= 66 &&
+        parsed.c1y.length >= 60 && parsed.c1y.length <= 66 &&
+        parsed.c3.length === 64) {
+      return 'asn1'
+    }
+    return 'plain'
+  } catch {
+    return 'plain'
+  }
+}
+
+// ========== 签名格式转换 ==========
+
+/**
+ * 检测签名格式
+ * @param {string} sigHex - 签名 hex
+ * @returns {'raw' | 'der'}
+ */
+export function detectSignatureFormat(sigHex) {
+  if (!sigHex) return 'raw'
+  // raw R||S 固定 128 字符 (64字节)
+  // ASN.1 DER 通常 140-146 字符
+  if (sigHex.length === 128) return 'raw'
+  if (sigHex.length > 128 && sigHex.substring(0, 2).toLowerCase() === '30') return 'der'
+  return 'raw'
+}
+
+/**
+ * ASN.1 DER 签名 → raw R||S (128字符)
+ * @param {string} derHex - DER 编码的签名
+ * @returns {string} raw R||S 格式签名
+ */
+export function derSignatureToRaw(derHex) {
+  let pos = 0
+  if (derHex.substr(pos, 2) !== '30') throw new Error('签名 DER 解析错误：期望 SEQUENCE')
+  pos += 2
+  const seqLen = derDecodeLength(derHex, pos)
+  pos = seqLen.nextOffset
+
+  // R
+  if (derHex.substr(pos, 2) !== '02') throw new Error('签名 DER 解析错误：期望 INTEGER for R')
+  pos += 2
+  const rLen = derDecodeLength(derHex, pos)
+  pos = rLen.nextOffset
+  let r = derHex.substr(pos, rLen.length * 2)
+  pos += rLen.length * 2
+  r = r.replace(/^00+/, '') || '0'
+  r = r.padStart(64, '0')
+
+  // S
+  if (derHex.substr(pos, 2) !== '02') throw new Error('签名 DER 解析错误：期望 INTEGER for S')
+  pos += 2
+  const sLen = derDecodeLength(derHex, pos)
+  pos = sLen.nextOffset
+  let s = derHex.substr(pos, sLen.length * 2)
+  s = s.replace(/^00+/, '') || '0'
+  s = s.padStart(64, '0')
+
+  return r + s
+}
+
+/**
+ * raw R||S 签名 → ASN.1 DER
+ * @param {string} rawHex - 128字符的 raw R||S
+ * @returns {string} DER 编码的签名
+ */
+export function rawSignatureToDer(rawHex) {
+  if (rawHex.length !== 128) throw new Error('raw 签名长度应为 128 字符')
+  const r = rawHex.substring(0, 64)
+  const s = rawHex.substring(64, 128)
+  const derR = derEncodeInteger(r)
+  const derS = derEncodeInteger(s)
+  const inner = derR + derS
+  return '30' + derEncodeLength(inner.length / 2) + inner
+}
+
+/**
+ * 签名格式统一：任意格式 → raw R||S
+ */
+export function normalizeSignature(sigHex) {
+  const fmt = detectSignatureFormat(sigHex)
+  if (fmt === 'der') return derSignatureToRaw(sigHex)
+  return sigHex
+}
+
+/**
+ * 签名格式统一：任意格式 → ASN.1 DER
+ */
+export function normalizeSignatureToDer(sigHex) {
+  const fmt = detectSignatureFormat(sigHex)
+  if (fmt === 'raw') return rawSignatureToDer(sigHex)
+  return sigHex
+}
+
 // ========== 加密/解密封装 ==========
 
 /**
@@ -292,11 +404,11 @@ export function sm2EncryptFull(msg, publicKey, {
     // ASN.1 编码：始终使用 x, y 分开存储
     return sm2EncodeAsn1(c1x, c1y, c3, c2)
   } else {
-    // 普通编码：按拼接顺序 + 点模式输出
+    // 普通编码：按拼接顺序输出（无04前缀，兼容Go/Java raw格式）
     if (cipherSplicing === 'C1C2C3') {
-      return c1Compressed + c2 + c3
+      return c1x + c1y + c2 + c3
     } else {
-      return c1Compressed + c3 + c2
+      return c1x + c1y + c3 + c2
     }
   }
 }
@@ -312,13 +424,16 @@ export function sm2EncryptFull(msg, publicKey, {
  * @returns {string} 解密后的明文
  */
 export function sm2DecryptFull(cipherText, privateKey, {
-  cipherEncoding = 'asn1',
+  cipherEncoding = 'auto',
   pointMarshalMode = 'uncompressed',
   cipherSplicing = 'C1C3C2'
 } = {}) {
   let c1x, c1y, c3, c2
 
-  if (cipherEncoding === 'asn1') {
+  // 自动检测格式
+  const encoding = cipherEncoding === 'auto' ? detectCipherFormat(cipherText.trim()) : cipherEncoding
+
+  if (encoding === 'asn1') {
     // ASN.1 解码
     const parsed = sm2DecodeAsn1(cipherText.trim())
     c1x = parsed.c1x

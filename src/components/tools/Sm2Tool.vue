@@ -57,6 +57,7 @@
               密文编码方式
             </label>
             <select v-model="cipherEncoding" class="input-field">
+              <option value="auto">自动检测 (推荐)</option>
               <option value="plain">普通编码 (Plain)</option>
               <option value="asn1">ASN.1编码 (国密标准)</option>
             </select>
@@ -259,7 +260,10 @@
 
 <script>
 import { sm2 } from 'sm-crypto'
-import { sm2EncryptFull, sm2DecryptFull } from '../../utils/sm2-asn1'
+import {
+  sm2EncryptFull, sm2DecryptFull,
+  normalizeSignature, normalizeSignatureToDer, detectSignatureFormat
+} from '../../utils/sm2-asn1'
 
 export default {
   name: 'Sm2Tool',
@@ -271,7 +275,7 @@ export default {
       isGenerating: false,
 
       // 加密参数（共享配置）
-      cipherEncoding: 'asn1',
+      cipherEncoding: 'auto',
       pointMarshalMode: 'uncompressed',
       cipherSplicing: 'C1C3C2',
 
@@ -379,7 +383,12 @@ export default {
           return
         }
         const userIdToUse = this.verifyUserId || '1234567812345678'
-        this.verifyResult = sm2.doVerifySignature(this.verifyText, this.verifySignature, this.publicKey, { userId: userIdToUse })
+        // 自动检测签名格式：raw (128字符) 或 ASN.1 DER (>128字符)
+        const sigFormat = detectSignatureFormat(this.verifySignature.trim())
+        this.verifyResult = sm2.doVerifySignature(this.verifyText, this.verifySignature.trim(), this.publicKey, {
+          userId: userIdToUse,
+          der: sigFormat === 'der'
+        })
       } catch (error) {
         console.error('验证错误:', error)
         this.verifyError = '验证失败：' + error.message
