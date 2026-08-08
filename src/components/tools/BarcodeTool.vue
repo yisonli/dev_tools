@@ -253,7 +253,7 @@
 
 <script>
 import JsBarcode from 'jsbarcode'
-// Note: Quagga需要在实际使用时配置，这里先实现基本功能
+import { BrowserMultiFormatReader } from '@zxing/browser'
 
 export default {
   name: 'BarcodeTool',
@@ -417,36 +417,15 @@ export default {
       this.parseResult = { code: '', format: '' }
       
       try {
-        // 注意：这里需要使用Quagga库，但由于其复杂性，先提供一个基础实现
-        // 在实际项目中，可以使用Web Workers来处理条形码解析
-        this.parseError = '条形码解析功能需要额外配置，当前版本暂不支持'
-        
-        // 实际实现可以参考以下代码结构：
-        /*
-        await new Promise((resolve, reject) => {
-          Quagga.decodeSingle({
-            decoder: {
-              readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader"]
-            },
-            locate: true,
-            src: this.uploadedImage
-          }, function(result) {
-            if(result && result.codeResult) {
-              this.parseResult = {
-                code: result.codeResult.code,
-                format: result.codeResult.format
-              }
-              resolve()
-            } else {
-              reject(new Error('未找到条形码'))
-            }
-          })
-        })
-        */
-        
+        const reader = new BrowserMultiFormatReader()
+        const result = await reader.decodeFromImageUrl(this.uploadedImage)
+        this.parseResult = {
+          code: result.getText(),
+          format: result.getBarcodeFormat().toString()
+        }
       } catch (error) {
         console.error('条形码解析错误:', error)
-        this.parseError = '解析失败：' + error.message
+        this.parseError = '解析失败：未找到可识别的条形码，请确认图片清晰且条码完整。'
       } finally {
         this.isParsing = false
       }

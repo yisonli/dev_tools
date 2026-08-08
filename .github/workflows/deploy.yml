@@ -35,10 +35,8 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
-      - name: 构建项目
-        env:
-          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
-        run: npm run build:pages
+      - name: 构建独立域名站点
+        run: npm run build
 
       - name: 上传 Pages 产物
         uses: actions/upload-pages-artifact@v3

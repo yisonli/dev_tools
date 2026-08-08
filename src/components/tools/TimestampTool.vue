@@ -369,7 +369,10 @@ export default {
   },
   mounted() {
     this.updateCurrentTime()
-    setInterval(this.updateCurrentTime, 1000)
+    this.clockTimer = setInterval(this.updateCurrentTime, 1000)
+  },
+  beforeUnmount() {
+    clearInterval(this.clockTimer)
   },
   methods: {
     updateCurrentTime() {

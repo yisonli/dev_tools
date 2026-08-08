@@ -1,6 +1,6 @@
 # 部署指南
 
-本指南将帮助你将开发者工具集合部署到 GitHub Pages。
+本项目当前发布为独立工具站：`https://tool.7ys.top/`。本指南说明 GitHub Pages 与自定义子域名的实际配置。
 
 ## 🚀 快速部署步骤
 
@@ -10,23 +10,9 @@
    - Fork 此仓库到你的 GitHub 账户
    - 或者下载代码并创建新的 GitHub 仓库
 
-2. **修改配置文件**
+2. **保持现有配置**
 
-   修改 `vite.config.js`：
-   ```javascript
-   export default defineConfig({
-     plugins: [vue()],
-     base: process.env.NODE_ENV === 'production' ? '/你的仓库名/' : '/',
-     // 其他配置...
-   })
-   ```
-
-   修改 `package.json`：
-   ```json
-   {
-     "homepage": "https://你的用户名.github.io/你的仓库名/"
-   }
-   ```
+   GitHub Actions 会运行 `npm run build`。不要把构建基础路径改为 `/dev_tools/`；自定义域名必须在 GitHub Pages 的 Custom domain 设置中保存，不能仅靠仓库中的 `CNAME` 文件。
 
 ### 2. 启用 GitHub Pages
 
@@ -44,11 +30,13 @@ git commit -m "部署开发者工具集合"
 git push origin main
 ```
 
-### 4. 等待部署完成
+### 4. 配置 DNS 并等待部署完成
 
 - GitHub Actions 会自动开始构建和部署流程
 - 在 "Actions" 标签页可以查看部署进度
-- 部署完成后，网站将在 `https://你的用户名.github.io/你的仓库名/` 访问
+- 在域名服务商添加 CNAME 记录：主机记录 `tool`，记录值 `yisonli.github.io`；不要带 `https://`、端口或路径
+- 在 GitHub 仓库 Settings -> Pages -> Custom domain 填入 `tool.7ys.top`，DNS 校验成功后启用 `Enforce HTTPS`
+- 部署完成后，网站访问地址为 `https://tool.7ys.top/`
 
 ## 🔧 本地开发
 
@@ -89,9 +77,9 @@ npm run preview
 
 ### 添加自定义域名
 
-1. 在仓库根目录创建 `public/CNAME` 文件
-2. 在文件中写入你的域名（如：tools.example.com）
-3. 在域名服务商处配置 CNAME 记录指向 `你的用户名.github.io`
+1. 在仓库 Settings -> Pages -> Custom domain 中填写 `tool.7ys.top`
+2. 在域名服务商处配置 CNAME 记录：`tool` 指向 `yisonli.github.io`
+3. 等待 GitHub 完成 DNS 校验后启用 `Enforce HTTPS`
 
 ### 修改主题颜色
 

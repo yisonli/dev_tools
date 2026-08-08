@@ -1,8 +1,10 @@
-# 开发者工具集合
+# 工具箱
 
-一个基于 Vue 3 的纯前端开发者工具集合，包含常用的编码、加密解密功能。所有操作均在本地完成，无需后端服务器，可直接部署到 GitHub Pages。
+一个基于 Vue 3 的本地优先开发者工具箱。所有数据处理均在浏览器完成，不需要后端服务。
 
-## ✨ 功能特性
+线上地址：<https://tool.7ys.top/>
+
+## 功能
 
 ### 🔐 加密解密工具
 - **BASE64编码/解码** - 支持中文字符的Base64编码解码
@@ -23,6 +25,12 @@
 ### 📄 格式校验工具
 - **JSON校验** - 格式化、压缩、校验、路径查询、格式转换
 - **YAML校验** - 格式化、校验、JSON互转、配置文件模板
+- **JWT 解析** - 本地查看 Header、Payload 与过期状态，不验证签名
+- **文本处理** - 按行去重、排序、清理空行与大小写转换
+
+### 🔧 常用工具
+- **哈希摘要** - MD5、SHA-1、SHA-256、SHA-512
+- **UUID 生成** - 使用浏览器安全随机源生成 UUID v4
 
 ### 🎨 用户体验
 - 现代化的响应式UI设计，支持移动端
@@ -35,7 +43,7 @@
 
 ## 🚀 在线体验
 
-访问: [https://yisonli.github.io/dev_tools/](https://yisonli.github.io/dev_tools/)
+访问: [https://tool.7ys.top/](https://tool.7ys.top/)
 
 ## 🛠️ 本地开发
 
@@ -89,23 +97,26 @@ npm run preview
 
 如果安装或运行时遇到错误，请查看 [故障排除指南](TROUBLESHOOTING.md)
 
-## 📦 部署到 GitHub Pages
+## 部署到 GitHub Pages 与独立域名
 
 ### 自动部署（推荐）
 
 1. Fork 或下载此项目到你的 GitHub 仓库
 2. 在仓库设置中启用 GitHub Pages，选择 "GitHub Actions" 作为源
-3. 修改 `vite.config.js` 中的 `base` 路径为你的仓库名
-4. 修改 `package.json` 中的 `homepage` 字段
-5. 推送代码到 main 分支，GitHub Actions 会自动构建和部署
+3. 在仓库 Settings -> Pages 中将 Source 设为 `GitHub Actions`。
+4. DNS 添加 `tool` 的 CNAME 记录，目标为 `yisonli.github.io`，不要填写 `https://` 或路径。
+5. 在仓库 Settings -> Pages -> Custom domain 填入 `tool.7ys.top` 并保存。此项目使用 GitHub Actions 发布，Custom domain 设置才是生效配置。
+6. DNS 生效后，勾选 Pages 的 `Enforce HTTPS`。推送到 `main` 会自动发布。
+
+博客菜单不再指向 `/dev_tools/`，应改为绝对地址 `https://tool.7ys.top/`。
 
 ### 手动部署
 
 ```bash
-# 构建项目
+# 构建独立域名站点
 npm run build
 
-# 部署到 gh-pages 分支
+# 部署到 gh-pages 分支（仅手工部署时使用）
 npm run deploy
 ```
 
