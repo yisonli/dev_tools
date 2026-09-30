@@ -13,10 +13,18 @@ function resolveBase(mode) {
 
 export default defineConfig(({ mode }) => ({
   plugins: [vue()],
+  optimizeDeps: { include: ['yaml', 'diff'] },
   base: resolveBase(mode),
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (/node_modules\/(?:@codemirror|@lezer|codemirror)\//.test(id)) return 'editor'
+        },
+      },
+    },
   },
   server: {
     port: 3000,

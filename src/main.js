@@ -4,6 +4,7 @@ import App from './App.vue'
 import './style.css'
 
 const routes = [
+  { path: '/diff', component: () => import('./components/tools/DiffTool.vue'), meta: { title: '差异对比' } },
   { path: '/', component: () => import('./components/ToolHome.vue'), meta: { title: '开发者工具箱' } },
   { path: '/base64', component: () => import('./components/tools/Base64Tool.vue'), meta: { title: 'BASE64编码' } },
   { path: '/aes', component: () => import('./components/tools/AesTool.vue'), meta: { title: 'AES加密' } },
@@ -27,7 +28,8 @@ const routes = [
 
 const router = createRouter({
   history: createWebHashHistory(),
-  routes
+  routes,
+  scrollBehavior(to) { return to.hash ? { el: to.hash } : { top: 0 } }
 })
 
 const app = createApp(App)

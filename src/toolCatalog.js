@@ -5,7 +5,7 @@ import {
 } from '@lucide/vue'
 
 export const tools = [
-  { name: 'Base64', path: '/base64', category: '编码', description: '文本 Base64 编码和解码', icon: Code2 },
+  { name: 'Base64', path: '/base64', category: '编码', description: '文本 Base64 编码和解码', aliases: 'base64 b64 解码 编码', icon: Code2 },
   { name: 'URL 编码', path: '/url', category: '编码', description: 'URL 编码、解码和组成解析', icon: Link2 },
   { name: 'Unicode', path: '/unicode', category: '编码', description: 'Unicode、UTF-8 与实体转换', icon: Type },
   { name: 'AES', path: '/aes', category: '加密', description: 'AES 对称加密与解密', icon: LockKeyhole },
@@ -15,6 +15,7 @@ export const tools = [
   { name: '哈希摘要', path: '/hash', category: '加密', description: 'MD5、SHA-1、SHA-256 和 SHA-512', icon: Hash },
   { name: 'JWT 解析', path: '/jwt', category: '格式与接口', description: '查看 Token 头、载荷和过期时间', icon: TicketCheck },
   { name: 'JSON', path: '/json', category: '格式与接口', description: '校验、格式化、压缩和路径查询', icon: FileJson },
+  { name: '差异对比', path: '/diff', category: '格式与接口', description: '文本和 JSON 差异比较', aliases: 'diff compare 比较', icon: FileJson },
   { name: 'YAML', path: '/yaml', category: '格式与接口', description: 'YAML 校验与 JSON 互转', icon: Braces },
   { name: '正则表达式', path: '/regex', category: '格式与接口', description: '实时匹配、替换和分割测试', icon: Regex },
   { name: '文本处理', path: '/text', category: '格式与接口', description: '去重、排序、清理空行和大小写', icon: TextCursorInput },

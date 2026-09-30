@@ -1,208 +1,129 @@
 # 工具箱
 
-一个基于 Vue 3 的本地优先开发者工具箱。所有数据处理均在浏览器完成，不需要后端服务。
+基于 Vue 3 的本地优先开发者工具箱。数据处理在浏览器中完成，无需后端服务。
 
 线上地址：<https://tool.7ys.top/>
 
 ## 功能
 
-### 🔐 加密解密工具
-- **BASE64编码/解码** - 支持中文字符的Base64编码解码
-- **AES加密/解密** - 支持多种模式（CBC/ECB/CFB/OFB/CTR）和填充方式
-- **DES加密/解密** - 支持DES和3DES加密（包含安全警告）
-- **RSA加密/解密** - 支持密钥对生成、加密解密、数字签名
-- **SM2加密/解密** - 国密标准椭圆曲线加密算法
+| 分类 | 工具 |
+| --- | --- |
+| 编码 | Base64 编解码、URL 编解码与参数解析、Unicode / UTF-8 / HTML 实体转换 |
+| 加密与摘要 | AES、DES / 3DES、RSA、SM2、MD5 / SHA 系列摘要 |
+| 格式与文本 | JSON、YAML、文本 / JSON 差异对比、正则表达式、文本处理、JWT 解析 |
+| 图码 | 二维码、条形码生成与图片识别 |
+| 常用 | 时间戳与时区转换、随机密码、UUID v4 |
 
-### 🌐 编码转换工具
-- **URL编码/解码** - 支持 encodeURIComponent 和 encodeURI 两种模式
-- **Unicode转换** - 支持Unicode、UTF-8、HTML实体、进制转换
-- **URL解析工具** - 完整URL组件分析和查询参数解析
+JWT 工具解析 Header、Payload 和过期状态，不验证签名。
 
-### 📱 图码生成工具
-- **二维码工具** - 生成/解析二维码，支持文本、URL、WiFi、联系人等
-- **条形码工具** - 生成多种格式条形码（EAN、UPC、Code128等）
+## 编辑工作区
 
-### 📄 格式校验工具
-- **JSON校验** - 格式化、压缩、校验、路径查询、格式转换
-- **YAML校验** - 格式化、校验、JSON互转、配置文件模板
-- **JWT 解析** - 本地查看 Header、Payload 与过期状态，不验证签名
-- **文本处理** - 按行去重、排序、清理空行与大小写转换
+JSON、YAML、Base64、文本处理和 Diff 使用统一工作区：
 
-### 🔧 常用工具
-- **哈希摘要** - MD5、SHA-1、SHA-256、SHA-512
-- **UUID 生成** - 使用浏览器安全随机源生成 UUID v4
+- 大编辑区、行号、语法高亮、查找替换、撤销、换行开关和错误定位。
+- 可收起导航；分栏支持拖动和方向键调整；可切换上下布局、专注模式或单区放大。
+- 窄屏使用输入 / 结果标签切换，可用方向键操作；通过专注模式扩大工作区。
+- 工具切换后保留当前会话的草稿、选项、编辑器撤销历史和换行设置；清空或替换后可恢复上一份输入。
+- 修改输入或处理选项后，旧结果会标记为待更新，重新处理后才能复制、下载或发送到其他工具。
+- 可将结果送入 JSON、YAML、Base64、文本处理或 Diff 的左侧 / 右侧；覆盖目标草稿前会提示。
+- 文件导入和结果下载、复制成功 / 失败反馈，以及可取消的后台处理。
 
-### 🎨 用户体验
-- 现代化的响应式UI设计，支持移动端
-- 分类导航菜单，工具分组管理
-- 实时编码解码和格式校验
-- 一键复制功能和文件下载
-- 随机密钥生成和示例模板
-- 详细的使用说明和安全提示
-- 批量转换和路径查询功能
+| 快捷键 | 操作 |
+| --- | --- |
+| `Ctrl/Cmd+K` | 搜索工具和当前工具的操作 |
+| `Ctrl/Cmd+Enter` | 执行当前编辑区的主要操作 |
+| `Ctrl/Cmd+F` | 编辑器内查找 |
+| `Esc` | 关闭搜索或退出专注模式 |
+| `Esc` 后按 `Tab` | 从编辑器切换到下一个控件 |
 
-## 🚀 在线体验
+### 常见处理流程
 
-访问: [https://tool.7ys.top/](https://tool.7ys.top/)
+- **JSON / YAML：**粘贴或导入 → 格式化、转换或路径查询 → 复制 / 下载。JSON 支持代码和树视图，可复制字段值与路径。
+- **Base64：**选择编码 / 解码 → 处理。两种模式分别保留草稿，可以将结果用作反向输入，或将解码后的 JSON 送入 JSON 工具。
+- **文本：**选择去空格、删除空行、去重、排序或大小写转换 → 处理 → 点击“结果用作输入”继续下一步。按行去重保留首次出现的行，空格不同的行视为不同内容。
+- **Diff：**输入两份内容或分别从其他工具接收 → 选择文本 / JSON 语义比较 → 查看差异。支持交换左右、差异导航、忽略行首尾空白和忽略 JSON 对象键顺序；数组顺序始终参与语义比较。
 
-## 🛠️ 本地开发
+### 数据与处理限制
 
-### 环境要求
-- Node.js 16+ 
-- npm 或 yarn
+工作内容只保存在当前页面会话的内存中，刷新后清空。浏览器仅持久保存收藏、最近使用和布局偏好。
 
-### 快速开始
+- 一般输入上限 5 MB；自动处理和实时语法诊断上限 100 KB；一般处理超过 8 秒会终止。
+- Diff 每侧上限 1 MB，复杂比较有超时限制；每个差异块最多预览 20000 字符，完整原文保留在编辑区。
+- JSON 格式化、压缩、查询和转换保留数值精度。格式化保留重复键，语义查询、转换与比较要求先消除重复键歧义。
+- JSON 嵌套上限 128 层，树视图上限 256K 字符。路径支持点号、数组索引和双引号键，如 `$.users[0].name`、`$["含点的键"]`，不支持完整 JSONPath 过滤表达式。
+- YAML 使用 1.2 core 规则解析并支持合并键；格式化保留注释与数值原文，支持多文档。转 JSON 和查询每次处理一个文档，无法表示的特殊标签、复杂键、循环引用和非有限数值会明确报错。
 
-**Windows用户：**
-```bash
-# 直接运行启动脚本（推荐）
-start-fix.bat
+## 本地开发
 
-# 或手动执行
-npm install --no-optional --legacy-peer-deps
-npm run dev
-```
-
-**Linux/Mac用户：**
-```bash
-# 运行启动脚本
-./start.sh
-
-# 或手动执行
-npm install
-npm run dev
-```
-
-### 完整安装步骤
+需要 Node.js 18+ 和 npm；当前 CI 使用 Node.js 18。依赖版本以 `package-lock.json` 为准。
 
 ```bash
-# 1. 克隆仓库
 git clone https://github.com/yisonli/dev_tools.git
 cd dev_tools
-
-# 2. 安装依赖
-npm install --no-optional --legacy-peer-deps
-
-# 3. 启动开发服务器
+npm ci
 npm run dev
+```
 
-# 4. 构建生产版本
+默认开发地址为 `http://localhost:3000`。也可指定端口：
+
+```bash
+npm run dev -- --port 5178
+```
+
+## 构建与部署
+
+独立域名或根路径部署：
+
+```bash
 npm run build
-
-# 5. 预览生产构建
 npm run preview
 ```
 
-### 🚨 遇到问题？
-
-如果安装或运行时遇到错误，请查看 [故障排除指南](TROUBLESHOOTING.md)
-
-## 部署到 GitHub Pages 与独立域名
-
-### 自动部署（推荐）
-
-1. Fork 或下载此项目到你的 GitHub 仓库
-2. 在仓库设置中启用 GitHub Pages，选择 "GitHub Actions" 作为源
-3. 在仓库 Settings -> Pages 中将 Source 设为 `GitHub Actions`。
-4. DNS 添加 `tool` 的 CNAME 记录，目标为 `yisonli.github.io`，不要填写 `https://` 或路径。
-5. 在仓库 Settings -> Pages -> Custom domain 填入 `tool.7ys.top` 并保存。此项目使用 GitHub Actions 发布，Custom domain 设置才是生效配置。
-6. DNS 生效后，勾选 Pages 的 `Enforce HTTPS`。推送到 `main` 会自动发布。
-
-博客菜单不再指向 `/dev_tools/`，应改为绝对地址 `https://tool.7ys.top/`。
-
-### 手动部署
+GitHub Pages 项目子路径部署：
 
 ```bash
-# 构建独立域名站点
-npm run build
-
-# 部署到 gh-pages 分支（仅手工部署时使用）
-npm run deploy
+npm run build:project
+npm run preview -- --base /dev_tools/
 ```
 
-## 🔒 安全性说明
+构建产物位于 `dist/`。项目页默认路径为 `/dev_tools/`，构建时可用 `GITHUB_REPOSITORY_NAME` 指定仓库名。
 
-- **本地处理**: 所有加密解密操作均在浏览器本地完成
-- **无数据传输**: 密钥和敏感数据不会发送到任何服务器
-- **开源透明**: 代码完全开源，可自由审查和修改
+仓库的 Pages 来源应设置为 **GitHub Actions**。推送到 `main` 会触发 `.github/workflows/deploy.yml`，构建独立域名版本并部署；自定义域名在仓库 Pages 设置中配置，DNS 的 CNAME 指向对应的 GitHub Pages 域名；校验通过后启用 HTTPS。
 
-## 🛡️ 加密算法说明
+## 测试
 
-### AES (Advanced Encryption Standard)
-- 对称加密算法，支持128/192/256位密钥
-- 支持多种工作模式：CBC、ECB、CFB、OFB、CTR
-- 推荐使用CBC模式，安全性较高
-
-### RSA (Rivest-Shamir-Adleman)
-- 非对称加密算法，支持1024/2048/4096位密钥
-- 公钥加密，私钥解密
-- 支持数字签名验证
-
-### SM2 (国密标准)
-- 基于椭圆曲线的非对称加密算法
-- 中国国密标准，广泛应用于国内系统
-- 支持C1C2C3和C1C3C2两种模式
-
-## 📋 技术栈
-
-- **框架**: Vue 3 + Vite
-- **样式**: Tailwind CSS
-- **路由**: Vue Router 4
-- **核心库**: 
-  - crypto-js (AES/DES加密)
-  - jsencrypt (RSA加密)
-  - sm-crypto (SM2国密加密)
-  - qrcode + qr-scanner (二维码)
-  - jsbarcode (条形码生成)
-  - js-yaml (YAML解析)
-
-## 🎯 扩展开发
-
-项目采用模块化设计，易于扩展新功能：
-
-1. 在 `src/components/tools/` 目录下创建新的工具组件
-2. 在 `src/main.js` 中注册新路由
-3. 在 `src/App.vue` 中添加导航链接
-
-### 组件结构示例
-
-```vue
-<template>
-  <div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-lg shadow-lg p-6">
-      <!-- 工具内容 -->
-    </div>
-  </div>
-</template>
-
-<script>
-export default {
-  name: 'NewTool',
-  data() {
-    return {
-      // 组件数据
-    }
-  },
-  methods: {
-    // 工具方法
-  }
-}
-</script>
+```bash
+npm test
+npx playwright install chromium
+npm run test:e2e
+npm run test:e2e:project
 ```
 
-## 📄 许可证
+- `npm test` 检查数据正确性和处理边界。
+- `test:e2e` 构建并验证根路径版本；`test:e2e:project` 构建并验证 `/dev_tools/` 版本。
+- 浏览器测试自行启动和关闭预览服务，默认端口分别为 4173、4174。可用 `E2E_BASE_URL` 指定已有服务，用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` 指定本机 Chromium / Chrome。
+- PR 检查运行数据测试和两种部署路径的浏览器回归。测试报告及构建产物不纳入 Git。
 
-MIT License - 可自由使用、修改和分发
+## 常见问题
 
-## 🤝 贡献
+| 问题 | 检查方式 |
+| --- | --- |
+| 依赖安装失败 | 检查 Node.js 版本与网络，关闭占用依赖文件的进程后重新执行 `npm ci`，保留 lockfile |
+| 开发或测试端口占用 | 开发服务用 `--port` 指定其他端口；浏览器测试可通过 `E2E_BASE_URL` 连接已有预览服务 |
+| 部署后白屏 / 资源 404 | 检查 Pages 来源是否为 GitHub Actions，并确认构建的根路径 / 项目子路径与部署地址一致 |
+| 复制失败 | 检查浏览器剪贴板权限；也可在编辑区选中文本手动复制 |
+| 刷新后草稿消失 | 当前设计只保留页面会话内存，重要内容请先下载 |
 
-欢迎提交 Issue 和 Pull Request 来改进项目！
+## 项目结构
 
-## 📞 联系方式
+- `src/toolCatalog.js`：工具名称、分类、说明与导航元数据。
+- `src/main.js`：路由与应用入口。
+- `src/components/tools/`：各工具页面。
+- `src/components/workspace/`：共享编辑器、工作区和输入输出操作。
+- `src/composables/`：会话草稿、任务状态与快捷命令。
+- `src/utils/`、`src/workers/`：数据处理与后台任务。
+- `tests/`、`e2e/`：数据回归和浏览器流程测试。
 
-如有问题或建议，欢迎创建 Issue 或通过以下方式联系：
+新增工具时，在 `src/components/tools/` 创建页面，在 `src/main.js` 注册路由，再登记到 `src/toolCatalog.js`。导航和首页会自动生成。
 
-- GitHub: [yisonli](https://github.com/yisonli)
----
-
-⭐ 如果这个项目对你有帮助，请给个 Star 支持一下！
+主要技术：Vue 3、Vite、Tailwind CSS、CodeMirror 6、jsonc-parser、yaml、diff，以及各工具使用的加密和图码库。
